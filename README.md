@@ -7,12 +7,10 @@
 - 将明文通知体加密后再转发给已有的 `bark-server`
 - 查询、激活、停用设备，并提供简单健康检查
 
-与 `E:\bark\bark-api` 相同的业务诉求，但使用 Go 实现、零外部依赖（BoltDB 文件存储），部署更简单。
 
 ## 快速开始
 
 ```powershell
-cd E:\bark\bark-secure-proxy
 copy config.example.yaml config.yaml   # 根据环境修改 bark.base_url、storage.path 等
 go run ./cmd/bark-secure-proxy -config config.yaml
 ```
