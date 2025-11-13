@@ -204,14 +204,14 @@ docker compose logs -f
 
 ## GitHub Actions 构建镜像
 
-`.github/workflows/docker.yml` 会在 push 到 `main`/`master` 时自动执行。使用前需在仓库 Settings → Secrets → Actions 中添加：
+`.github/workflows/docker.yml` 会在 push 到 `main`/`master` 时自动执行，默认推送到 `ghcr.io/ruawd/bark-secure-proxy:latest`。Workflow 使用 GitHub 自带的 `${{ secrets.GITHUB_TOKEN }}` 登录，无需额外配置。
 
-| Secret | 说明 |
-| ------ | ---- |
-| `DOCKERHUB_USERNAME` | Docker Hub（或目标注册表）用户名 |
-| `DOCKERHUB_TOKEN`    | Docker Hub Access Token / PAT |
+```powershell
+docker pull ghcr.io/ruawd/bark-secure-proxy:latest
+docker run -d --name bark-secure-proxy -p 8090:8090 ghcr.io/ruawd/bark-secure-proxy:latest
+```
 
-推送后即可在注册表中获取 `bark-secure-proxy:latest` 镜像，服务器上 `docker pull <用户名>/bark-secure-proxy:latest` 再配合 `docker compose up -d` 即可部署。
+或继续使用 `docker compose up -d`。
 
 ## 后续可扩展方向
 
