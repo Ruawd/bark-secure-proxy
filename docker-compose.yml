@@ -1,0 +1,10 @@
+services:
+  bark-secure-proxy:
+    build: .
+    container_name: bark-secure-proxy
+    ports:
+      - "8090:8090"
+    volumes:
+      - ./config.yaml:/app/config.yaml
+      - ./data:/app/data
+    restart: unless-stopped

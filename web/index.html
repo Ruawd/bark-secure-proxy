@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Bark Secure Console</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <section id="auth-panel" class="card">
+        <div class="brand">
+          <h1>Bark Secure Console</h1>
+          <p>登录后即可管理设备、推送与集成指南。</p>
+        </div>
+        <form id="login-form" class="form-column">
+          <label>
+            用户名
+            <input type="text" name="username" placeholder="admin" required />
+          </label>
+          <label>
+            密码
+            <input type="password" name="password" placeholder="••••••••" required />
+          </label>
+          <button type="submit" class="primary">登录</button>
+          <small id="login-hint" class="hint">默认账号 & 密码可在 config.yaml 中修改。</small>
+        </form>
+      </section>
+
+      <section id="portal" class="hidden">
+        <header class="topbar">
+          <div class="brand-meta">
+            <h2>Bark Secure Proxy</h2>
+            <p id="sidebar-user">欢迎，管理员</p>
+          </div>
+          <nav id="nav">
+            <button class="nav-link active" data-view="dashboard">概览</button>
+            <button class="nav-link" data-view="devices">设备</button>
+            <button class="nav-link" data-view="sender">推送中心</button>
+            <button class="nav-link" data-view="logs">日志</button>
+            <button class="nav-link" data-view="guide">接入向导</button>
+          </nav>
+          <button id="logout-btn" class="ghost">退出登录</button>
+        </header>
+
+        <main id="view-container">
+          <section class="view-section active" data-view="dashboard">
+            <header class="section-header">
+              <div>
+                <h3>概览</h3>
+                <p>服务健康、推送统计、最近日志。</p>
+              </div>
+              <button id="refresh-dashboard" class="ghost">刷新</button>
+            </header>
+            <div class="card-grid">
+              <article class="mini-card">
+                <h4>服务状态</h4>
+                <p id="card-status">--</p>
+              </article>
+              <article class="mini-card">
+                <h4>活跃设备</h4>
+                <p id="card-active">--</p>
+              </article>
+              <article class="mini-card">
+                <h4>今日推送</h4>
+                <p id="card-today">--</p>
+              </article>
+              <article class="mini-card">
+                <h4>成功次数</h4>
+                <p id="card-success">--</p>
+              </article>
+            </div>
+            <div class="card">
+              <div class="section-header small">
+                <h4>最近推送日志</h4>
+              </div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>时间</th>
+                      <th>设备</th>
+                      <th>标题</th>
+                      <th>分组</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-logs">
+                    <tr><td colspan="5" class="empty">暂无数据</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="view-section" data-view="devices">
+            <header class="section-header">
+              <div>
+                <h3>设备管理</h3>
+                <p>录入 DeviceToken / DeviceKey，自动生成 encodeKey / IV。</p>
+              </div>
+              <button id="refresh-devices" class="ghost">刷新</button>
+            </header>
+            <div class="grid-2">
+              <article class="card">
+                <h4>新增 / 更新设备</h4>
+                <form id="device-form" class="form-grid">
+                  <label>Device Token<input type="text" name="deviceToken" required /></label>
+                  <label>Device Key<input type="text" name="deviceKey" /></label>
+                  <label>设备名称<input type="text" name="name" /></label>
+                  <label>Register Key<input type="text" name="registerKey" placeholder="可选" /></label>
+                  <label>Encode Key<input type="text" name="encodeKey" placeholder="留空自动生成" /></label>
+                  <label>IV<input type="text" name="iv" placeholder="默认 16 字符" /></label>
+                  <label>状态
+                    <select name="status">
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="STOP">STOP</option>
+                    </select>
+                  </label>
+                  <button type="submit" class="primary full">保存设备</button>
+                  <span id="device-feedback" class="hint full"></span>
+                </form>
+              </article>
+              <article class="card">
+                <h4>操作引导</h4>
+                <ol class="guide">
+                  <li>在 Bark App 添加服务器并复制 DeviceToken / DeviceKey。</li>
+                  <li>在左侧表单填入 Token/Key，保存即可生成 encodeKey 与 IV。</li>
+                  <li>将 encodeKey/IV 写回 Bark App → 设置 → 加密设置。</li>
+                  <li>对每台设备重复上述步骤即可完成绑定。</li>
+                </ol>
+              </article>
+            </div>
+            <div class="card">
+              <div class="section-header small">
+                <h4>设备列表</h4>
+              </div>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>名称</th>
+                      <th>Device Token</th>
+                      <th>Device Key</th>
+                      <th>状态</th>
+                      <th>更新时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="devices-table-body">
+                    <tr><td colspan="5" class="empty">暂无数据</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="view-section" data-view="sender">
+            <header class="section-header">
+              <div>
+                <h3>推送中心</h3>
+                <p>编写明文内容，代理自动加密并推送。</p>
+              </div>
+              <button id="refresh-sender" class="ghost">刷新设备</button>
+            </header>
+            <div class="card">
+              <form id="notice-form" class="form-grid">
+                <label>标题<input type="text" name="title" placeholder="可留空" /></label>
+                <label>副标题<input type="text" name="subtitle" placeholder="可选" /></label>
+                <label>分组<input type="text" name="group" placeholder="可选" /></label>
+                <label>URL<input type="url" name="url" placeholder="https://example.com" /></label>
+                <label>图标 URL<input type="url" name="icon" placeholder="https://example.com/icon.png" /></label>
+                <label>图片 URL<input type="url" name="image" placeholder="https://example.com/image.png" /></label>
+                <label class="full">正文<textarea name="body" rows="4" required></textarea></label>
+                <label class="full">
+                  目标设备
+                  <select id="notice-device-keys" name="deviceKeys" multiple size="5"></select>
+                  <small>默认勾选全部 ACTIVE 设备。按 Ctrl/⌘ 可多选。</small>
+                </label>
+                <label class="checkbox full">
+                  <input type="checkbox" id="notice-all" checked />
+                  <span>忽略选择，向所有 ACTIVE 设备广播</span>
+                </label>
+                <div class="template-bar full">
+                  <span>快速模板：</span>
+                  <button type="button" class="chip" data-template="jellyfin">Jellyfin 播放</button>
+                  <button type="button" class="chip" data-template="simple">简单提醒</button>
+                </div>
+                <button type="submit" class="primary full">立即发送</button>
+                <span id="notice-feedback" class="hint full"></span>
+              </form>
+            </div>
+          </section>
+
+          <section class="view-section" data-view="logs">
+            <header class="section-header">
+              <div>
+                <h3>通知日志</h3>
+                <p>支持按分组、状态与时间范围过滤。</p>
+              </div>
+              <button id="refresh-logs" class="ghost">刷新</button>
+            </header>
+            <div class="card">
+              <form id="log-filter" class="filter-grid">
+                <label>分组<input type="text" name="group" /></label>
+                <label>状态
+                  <select name="status">
+                    <option value="">全部</option>
+                    <option value="SUCCESS">SUCCESS</option>
+                    <option value="FAILED">FAILED</option>
+                  </select>
+                </label>
+                <label>开始日期<input type="date" name="beginTime" /></label>
+                <label>结束日期<input type="date" name="endTime" /></label>
+                <button type="submit" class="ghost">应用筛选</button>
+              </form>
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>时间</th>
+                      <th>标题</th>
+                      <th>分组</th>
+                      <th>设备</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody id="logs-table-body">
+                    <tr><td colspan="5" class="empty">暂无数据</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section class="view-section" data-view="guide">
+            <header class="section-header">
+              <div>
+                <h3>接入向导</h3>
+                <p>Bark App、Webhook、Jellyfin 等常见场景的步骤与示例。</p>
+              </div>
+            </header>
+            <div class="card guide-content">
+              <h4>1. Bark App 私人服务器</h4>
+              <ol>
+                <li>在 Bark App → 右上角 “添加服务器”，填入本服务公网地址。</li>
+                <li>App 成功连接后复制 DeviceToken、DeviceKey。</li>
+                <li>在“设备”页面保存 Token/Key，系统会返回 encodeKey 与 IV。</li>
+                <li>将 encodeKey/IV 填入 Bark App → 设置 → 加密设置。</li>
+              </ol>
+              <h4>2. Webhook / 自定义服务</h4>
+              <pre><code>POST http://<proxy-host>:8090/notice
+Content-Type: application/json
+
+{ "title": "CI Build", "body": "完成", "group": "devops" }</code></pre>
+              <h4>3. Jellyfin 模板示例</h4>
+              <pre><code>{
+  "group": "Jellyfin",
+  "title": "🎬 Jellyfin 播放",
+  "body": "用户：{{NotificationUsername}}\n影片：{{Name}}\n终端：{{DeviceName}}"
+}</code></pre>
+
+              <div class="snippet-builder">
+                <h4>4. 快速生成命令</h4>
+                <form id="snippet-form" class="form-grid">
+                  <label>接口模板
+                    <select name="endpoint" id="snippet-endpoint">
+                      <option value="notice-post">推送通知（POST /notice）</option>
+                      <option value="notice-get">推送通知（GET /notice）</option>
+                      <option value="device-gen">生成设备密钥（POST /device/gen）</option>
+                      <option value="log-list">查询推送日志（GET /api/notice/log/list）</option>
+                    </select>
+                  </label>
+                  <label>服务器地址
+                    <input type="text" name="host" id="snippet-host" placeholder="http://127.0.0.1:8090" />
+                  </label>
+                  <label>设备选择
+                    <select id="snippet-device-keys" name="snippetDevice" multiple size="4"></select>
+                    <small>可多选，不选则默认全部 ACTIVE</small>
+                  </label>
+                  <label class="checkbox">
+                    <input type="checkbox" id="snippet-all" checked />
+                    <span>忽略选择，向所有 ACTIVE 设备广播</span>
+                  </label>
+                  <label>标题
+                    <input type="text" name="title" id="snippet-title" placeholder="提示" />
+                  </label>
+                  <label>副标题
+                    <input type="text" name="subtitle" id="snippet-subtitle" placeholder="可选" />
+                  </label>
+                  <label>分组
+                    <input type="text" name="group" id="snippet-group" placeholder="可选" />
+                  </label>
+                  <label>URL
+                    <input type="text" name="url" id="snippet-url" placeholder="https://example.com" />
+                  </label>
+                  <label>图标 URL
+                    <input type="text" name="icon" id="snippet-icon" placeholder="https://example.com/icon.png" />
+                  </label>
+                  <label>图片 URL
+                    <input type="text" name="image" id="snippet-image" placeholder="https://example.com/image.png" />
+                  </label>
+                  <label>正文
+                    <textarea name="body" id="snippet-body" rows="3" placeholder="你好 Bark"></textarea>
+                  </label>
+                  <label>Device Token
+                    <input type="text" name="deviceToken" id="snippet-device-token" placeholder="用于 /device/gen" />
+                  </label>
+                  <label>API Token / Bearer
+                    <input type="text" name="token" id="snippet-token" placeholder="status/log 接口需要" />
+                  </label>
+                  <div class="snippet-output-grid full">
+                    <label>Method
+                      <input type="text" id="snippet-method-output" readonly />
+                    </label>
+                    <label>URL
+                      <input type="text" id="snippet-url-output" readonly />
+                    </label>
+                    <label>Headers
+                      <textarea id="snippet-headers-output" rows="4" readonly></textarea>
+                    </label>
+                    <label>Body
+                      <textarea id="snippet-body-output" rows="5" readonly></textarea>
+                    </label>
+                  </div>
+                  <button type="button" id="copy-snippet" class="ghost full">复制全部</button>
+                </form>
+              </div>
+            </div>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+    <script src="app.js" defer></script>
+  </body>
+</html>

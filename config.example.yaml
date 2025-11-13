@@ -1,0 +1,28 @@
+http:
+  addr: ":8090"
+  read_timeout: 15s
+  write_timeout: 30s
+
+bark:
+  base_url: "http://127.0.0.1:8080"
+  token: ""
+  request_timeout: 10s
+
+storage:
+  path: "./data/devices.db"
+
+crypto:
+  default_algorithm: "AES"
+  default_mode: "CBC"
+  default_padding: "PKCS7Padding"
+  key_bytes: 32
+  iv_bytes: 16
+
+frontend:
+  dir: "./web"
+
+auth:
+  enabled: true
+  username: "admin"
+  password: "admin123"
+  jwt_secret: "replace-this-secret"
