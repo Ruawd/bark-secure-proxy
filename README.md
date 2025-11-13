@@ -183,6 +183,36 @@ go build -o bin/bark-secure-proxy.exe ./cmd/bark-secure-proxy
 
 可以配合 Windows 服务 / NSSM / systemd 等守护运行。
 
+## Docker
+
+### 手动构建
+```powershell
+docker build -t bark-secure-proxy:latest .
+docker run -d --name bark-secure-proxy -p 8090:8090 `
+  -v ${PWD}/config.yaml:/app/config.yaml `
+  -v ${PWD}/data:/app/data `
+  bark-secure-proxy:latest
+```
+
+### docker compose
+项目自带 `docker-compose.yml`：
+```powershell
+docker compose up -d
+docker compose up -d --build   # 更新镜像
+docker compose logs -f
+```
+
+## GitHub Actions 构建镜像
+
+`.github/workflows/docker.yml` 会在 push 到 `main`/`master` 时自动执行。使用前需在仓库 Settings → Secrets → Actions 中添加：
+
+| Secret | 说明 |
+| ------ | ---- |
+| `DOCKERHUB_USERNAME` | Docker Hub（或目标注册表）用户名 |
+| `DOCKERHUB_TOKEN`    | Docker Hub Access Token / PAT |
+
+推送后即可在注册表中获取 `bark-secure-proxy:latest` 镜像，服务器上 `docker pull <用户名>/bark-secure-proxy:latest` 再配合 `docker compose up -d` 即可部署。
+
 ## 后续可扩展方向
 
 1. 增加操作审计与推送日志
